@@ -10,8 +10,8 @@ export const sendMail = async ({ to, subject, html, attachments }) => {
 
   await sgMail.send({
     to,
-    from: "Movie Tickets <adityaankur5373@gmail.com>",
-    replyTo: "adityaankur5373@gmail.com",
+    from: "Movie Tickets <shounakkumbhakar@gmail.com>",
+    replyTo: "shounakkumbhakar@gmail.com",
     subject,
     html,
     attachments,
