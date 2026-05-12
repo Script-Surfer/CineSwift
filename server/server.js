@@ -1,41 +1,54 @@
 import express from "express";
 import cors from "cors";
-import "dotenv/config";
-import connectDB from "./configs/db.js";
-import { clerkMiddleware } from "@clerk/express";
-import { serve } from "inngest/express";
-import { inngest, functions } from "./inngest/index.js";
-import showRouter from "./routes/showRoutes.js";
-import bookingRouter from "./routes/bookingRoutes.js";
-import adminRouter from "./routes/adminRoutes.js";
-import userRouter from "./routes/userRoutes.js";
-import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import "./cron/expireBookings.cron.js";
+import authRoutes from "./routes/authRoutes.js";
+import movieRoutes from "./routes/movieRoutes.js";
+import theatreRoutes from "./routes/theatreRoutes.js";
+import showRoutes from "./routes/showRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
+import adminRoutes from './routes/adminRoutes.js'
+import { errorHandler } from "./middlewares/errorMiddleware.js";
+import favouriteRoutes from "./routes/favourite.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
+import  stripeWebhook  from "./controller/stripeWebhook.controller.js";
+dotenv.config();
 
 const app = express();
-const port = 3000;
-
-await connectDB();
-
-// Stripe Webhooks Route
-app.use(
-  "/api/stripe",
-  express.raw({ type: "application/json" }),
-  stripeWebhooks
-);
-
 // Middleware
-app.use(express.json());
-app.use(cors());
-app.use(clerkMiddleware());
-
-// API Routes
-app.get("/", (req, res) => res.send("Server is Live!"));
-app.use("/api/inngest", serve({ client: inngest, functions }));
-app.use("/api/show", showRouter);
-app.use("/api/booking", bookingRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/user", userRouter);
-
-app.listen(port, () =>
-  console.log(`Server listening at http://localhost:${port}`)
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
 );
+app.post(
+"/api/payments/webhook",
+express.raw({ type: "application/json" }),
+stripeWebhook
+);
+app.use(cookieParser());
+app.use(express.json());
+// Routes
+app.get("/", (req, res) => {
+  res.send("API Running ✅");
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/movies", movieRoutes);
+app.use("/api/threater", theatreRoutes);
+app.use("/api/shows", showRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/favourites", favouriteRoutes);
+app.use("/api/payments", paymentRoutes);
+// Error Middleware (always last)
+app.use(errorHandler);
+
+// Server
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
