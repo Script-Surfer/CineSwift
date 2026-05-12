@@ -1,121 +1,191 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { useSession } from "./hooks/useSession";
 
-function App() {
-  const [count, setCount] = useState(0)
+// layouts
+import MainLayout from "./layouts/MainLayout";
+import AdminLayout from "./layouts/AdminLayout";
+
+// guards
+import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminRoute from "./routes/AdminRoute";
+
+// pages
+import Home from "./pages/Home";
+import Movies from "./pages/Movies";
+import MovieDetails from "./pages/MovieDetails";
+import SeatLayout from "./pages/SeatLayout";
+import MyBookings from "./pages/MyBookings";
+import Favourite from "./pages/Favourite";
+import NotFound from "./pages/NotFound";
+import Loading from "./components/Loading";
+import Payment from "./pages/Payment";
+import Releases from "./pages/Releases";
+import TicketPage from "./pages/TicketPage";
+import Threaters from "./pages/Theatres";
+import TheatreDetails from "./pages/TheatreDetails";
+import MovieTheatres from "./pages/MovieTheatres";
+import PaymentSuccess from "./pages/PaymentSuccess";
+// admin
+import AdminDashboard from "./admin/AdminDashboard";
+import ListBooking from "./admin/ListBooking";
+import ListShows from "./admin/ListShows";
+import AddShows from "./admin/AddShows";
+import CreateMovie from "./admin/CreateMovie";
+import CreateTheatre from "./admin/CreateTheatre";
+import CreateScreen from "./admin/CreateScreen";
+
+const App = () => {
+  const { isLoading } = useSession();
+ useEffect(() => {
+  const ua = navigator.userAgent || "";
+
+  const isLinkedIn = /LinkedIn/i.test(ua);
+
+  if (isLinkedIn) {
+    const open = window.confirm(
+      "For login & payments, please open this app in Chrome/Safari.\n\nTap OK to open in browser."
+    );
+
+    if (open) {
+      // Android → open Chrome directly
+      window.location.href = `intent://${window.location.host}${window.location.pathname}#Intent;scheme=https;package=com.android.chrome;end`;
+    }
+  }
+}, []);
+
+  if (isLoading) return <Loading />;
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      <Toaster />
 
-      <div className="ticks"></div>
+      <Routes>
+        {/* MAIN LAYOUT */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/movies" element={<Movies />} />
+          <Route path="/movies/:id" element={<MovieDetails />} />
+          <Route path="/shows/:showId/seats" element={<SeatLayout />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <Route path="/threater" element={<Threaters />} />
+          <Route path="/threater/:theatreId" element={<TheatreDetails />} />
+          <Route path="/movies/:movieId/theatres" element={<MovieTheatres />} />
+         
+          <Route
+            path="/my-bookings"
+            element={
+              <ProtectedRoute>
+                <MyBookings />
+              </ProtectedRoute>
+            }
+          />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+          <Route
+            path="/favourite"
+            element={
+              <ProtectedRoute>
+                <Favourite />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ticket/:bookingId"
+            element={
+              <ProtectedRoute>
+                <TicketPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* OTHER ROUTES (NO LAYOUT) */}
+        <Route
+          path="/checkout/:bookingId"
+          element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/movies-releases" element={<Releases />} />
+            <Route
+  path="/payment/success/:bookingId"
+  element={<PaymentSuccess />}
+/>
+        {/* ADMIN LAYOUT */}
+        <Route element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/add-movies"
+            element={
+              <AdminRoute>
+                <AddShows />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/booking-list"
+            element={
+              <AdminRoute>
+                <ListBooking />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/shows-list"
+            element={
+              <AdminRoute>
+                <ListShows />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/create-movie"
+            element={
+              <AdminRoute>
+                <CreateMovie />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/create-theatre"
+            element={
+              <AdminRoute>
+                <CreateTheatre />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/create-screen"
+            element={
+              <AdminRoute>
+                <CreateScreen />
+              </AdminRoute>
+            }
+          />
+        </Route>
+
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
