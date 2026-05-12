@@ -1,17 +1,27 @@
-import express from "express";
+import { Router } from "express";
+import protect from "../middlewares/protect.js";
+import adminOnly from "../middlewares/adminOnly.js";
 import {
-  addShow,
-  getNowPlayingMovies,
-  getShow,
-  getShows,
-} from "../controllers/showController.js";
-import { protectAdmin } from "../middleware/auth.js";
+  getShowsByMovieAndDate,
+  createShow,
+  getShowsByMovie,
+  getShowsByTheatre,
+  getAllShowsAdmin,
+    getShowById,
+} from "../controller/show.controller.js";
 
-const showRouter = express.Router();
+const router = Router();
 
-showRouter.get("/now-playing", protectAdmin, getNowPlayingMovies);
-showRouter.post("/add", protectAdmin, addShow);
-showRouter.get("/all", getShows);
-showRouter.get("/:movieId", getShow);
+router.get("/", getShowsByMovieAndDate);
 
-export default showRouter;
+// ✅ put fixed routes first
+router.post("/", protect, adminOnly, createShow);
+router.get("/all", protect, adminOnly, getAllShowsAdmin);
+router.get("/movie/:movieId", getShowsByMovie);
+router.get("/theatre/:theatreId", getShowsByTheatre);
+// get show details (includes bookedSeats + lockedSeats)
+router.get("/:showId", getShowById);
+
+
+
+export default router;
