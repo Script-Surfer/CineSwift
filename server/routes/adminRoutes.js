@@ -1,17 +1,10 @@
-import express from "express";
-import { protectAdmin } from "../middleware/auth.js";
-import {
-  getAllBookings,
-  getAllShows,
-  getDashboardData,
-  isAdmin,
-} from "../controllers/adminController.js";
+import { Router } from "express";
+import protect from "../middlewares/protect.js";
+import adminOnly from "../middlewares/adminOnly.js";
+import { getAdminDashboard } from "../controller/admin.controller.js";
 
-const adminRouter = express.Router();
+const router = Router();
 
-adminRouter.get("/is-admin", protectAdmin, isAdmin);
-adminRouter.get("/dashboard", protectAdmin, getDashboardData);
-adminRouter.get("/all-shows", protectAdmin, getAllShows);
-adminRouter.get("/all-bookings", protectAdmin, getAllBookings);
+router.get("/dashboard", protect, adminOnly, getAdminDashboard);
 
-export default adminRouter;
+export default router;

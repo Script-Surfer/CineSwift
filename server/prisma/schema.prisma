@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id         String      @id @default(uuid())
+  name       String?
+  email      String      @unique
+  password   String?
+  provider   String      @default("local")
+  googleId   String?     @unique
+  createdAt  DateTime    @default(now())
+  role       Role        @default(USER)
+  bookings   Booking[]
+  favourites Favourite[]
+}
+
+model Genre {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  movies Movie[] @relation("GenreToMovie")
+}
+
+model Movie {
+  id               String      @id @default(uuid())
+  title            String      @unique
+  overview         String?
+  posterPath       String?
+  backdropPath     String?
+  releaseDate      DateTime?
+  runtime          Int?
+  createdAt        DateTime    @default(now())
+  originalLanguage String?
+  tagline          String?
+  voteAverage      Float?
+  voteCount        Int?
+  imdbId           String?     @unique
+  favourites       Favourite[]
+  shows            Show[]
+  trailers         Trailer[]
+  casts            Cast[]      @relation("CastToMovie")
+  genres           Genre[]     @relation("GenreToMovie")
+}
+
+model Trailer {
+  id         String  @id @default(uuid())
+  image      String
+  videoUrl   String
+  movieId    String
+  youtubeKey String?
+  movie      Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+}
+
+model Cast {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  profilePath String?
+  movies      Movie[] @relation("CastToMovie")
+}
+
+model Theatre {
+  id         String   @id @default(uuid())
+  name        String @unique
+  city       String
+  area       String
+  address    String
+  createdAt  DateTime @default(now())
+  screenList Screen[]
+}
+
+model Screen {
+  id        String   @id @default(uuid())
+  name      String
+  screenNo  Int
+  layout    Json
+  theatreId String
+  theatre   Theatre  @relation(fields: [theatreId], references: [id], onDelete: Cascade)
+  shows     Show[]
+   @@unique([theatreId, screenNo]) 
+  createdAt DateTime @default(now())
+}
+
+model Show {
+  id         String     @id @default(uuid())
+  startTime  DateTime
+  endTime    DateTime
+  seatPrice  Int
+  movieId    String
+  screenId   String
+  createdAt  DateTime   @default(now())
+  seatPrices Json?
+  bookings   Booking[]
+  movie      Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  screen     Screen     @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  seatLocks  SeatLock[]
+
+  @@unique([screenId, startTime])
+  @@index([movieId])
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  userId          String
+  showId          String
+  paymentIntentId String?       @unique
+  bookedSeats     String[]
+  status          BookingStatus @default(PENDING)
+  totalAmount     Int
+  isPaid          Boolean       @default(false)
+  expiredAt       DateTime?
+  createdAt       DateTime      @default(now())
+  reminderSent    Boolean       @default(false)
+  emailSent       Boolean       @default(false)
+  show            Show          @relation(fields: [showId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seatLocks       SeatLock[]
+
+  @@index([userId, createdAt])
+  @@index([showId])
+}
+
+model Favourite {
+  id        String   @id @default(cuid())
+  userId    String
+  movieId   String
+  createdAt DateTime @default(now())
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@index([userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+model SeatLock {
+  id        String         @id @default(uuid())
+  showId    String
+  seatId    String
+  userId    String
+  bookingId String
+  show      Show           @relation(fields: [showId], references: [id])
+  booking   Booking        @relation(fields: [bookingId], references: [id])
+  status    SeatLockStatus @default(LOCKED)
+  expiresAt DateTime
+  createdAt DateTime       @default(now())
+}
+
+enum SeatLockStatus {
+  LOCKED
+  BOOKED
+  EXPIRED
+}
