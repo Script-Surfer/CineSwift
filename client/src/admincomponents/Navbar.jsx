@@ -7,7 +7,7 @@ const Navbar = () => {
          <Link to="/" className="flex items-center gap-2 flex-1 md:flex-none">
   <Ticket className="w-10 h-10 text-primary" />
   <span className="text-xl font-bold">
-    MovieShow
+    CineSwift
   </span>
 </Link>
     </div>
